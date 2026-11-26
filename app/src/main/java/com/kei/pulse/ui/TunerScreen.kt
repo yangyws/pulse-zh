@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
@@ -816,6 +817,31 @@ private fun ProfileListRow(
                     fontWeight = FontWeight.SemiBold,
                     color = contentColor,
                 )
+                if (isApplied) {
+                    Surface(
+                        color = colorScheme.primary,
+                        shape = RoundedCornerShape(999.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = colorScheme.onPrimary,
+                            )
+                            Text(
+                                text = strings.profileInUse,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.onPrimary,
+                            )
+                        }
+                    }
+                }
                 if (isSleepProfile) {
                     Icon(
                         imageVector = Icons.Rounded.DarkMode,
@@ -978,6 +1004,17 @@ private fun ProfileSelectorChip(
 ) {
     AssistChip(
         onClick = onClick,
+        leadingIcon = if (isApplied) {
+            {
+                Icon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        } else {
+            null
+        },
         colors = when {
             isApplied -> AssistChipDefaults.assistChipColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,

@@ -400,6 +400,7 @@ interface PulseStrings {
     val verifyActual: String
     val powerTierAutoTdp: String
     val powerTierStock: String
+    val profileInUse: String
 }
 
 fun com.kei.pulse.model.PerformanceProfile.localizedName(strings: PulseStrings): String =
