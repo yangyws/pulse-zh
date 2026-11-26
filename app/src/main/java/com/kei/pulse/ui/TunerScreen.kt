@@ -771,7 +771,6 @@ private fun ProfileListRow(
         else -> colorScheme.onSurface
     }
     val borderColor = when {
-        isApplied -> colorScheme.primary
         isSelected -> colorScheme.primary
         else -> Color.Transparent
     }
@@ -987,7 +986,6 @@ private fun ProfileSelectorChip(
             else -> AssistChipDefaults.assistChipColors()
         },
         border = when {
-            isApplied -> BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
             isSelected -> BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
             else -> null
         },
