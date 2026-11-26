@@ -397,4 +397,5 @@ class ResourcePulseStrings(private val context: Context) : PulseStrings {
     override val powerTierAutoTdp: String get() = context.getString(R.string.power_tier_auto_tdp)
     override val powerTierStock: String get() = context.getString(R.string.power_tier_stock)
     override val profileInUse: String get() = context.getString(R.string.profile_in_use)
+    override val applyingProfile: String get() = context.getString(R.string.applying_profile)
 }

@@ -95,6 +95,7 @@ private const val NEW_PROFILE_DIALOG_ID = "__new_profile__"
 @Composable
 fun MainTunerScreen(
     state: TunerState,
+    isApplyingProfile: Boolean = false,
     sleepProfileId: String?,
     onApplyProfile: (PerformanceProfile) -> Unit,
     onApplyCurrent: (TunerState) -> Unit,
@@ -324,6 +325,7 @@ fun MainTunerScreen(
                     PulseSectionLabel("${strings.profilesTitle} · SAVED SETUPS")
                     ProfileListSection(
                         state = state,
+                        isApplyingProfile = isApplyingProfile,
                         sleepProfileId = sleepProfileId,
                         onApplyProfile = onApplyProfile,
                         onOpenCreateProfile = { dialogProfileId = NEW_PROFILE_DIALOG_ID },
@@ -712,6 +714,7 @@ private fun CurrentFrequenciesCard(state: TunerState) {
 @Composable
 private fun ProfileListSection(
     state: TunerState,
+    isApplyingProfile: Boolean,
     sleepProfileId: String?,
     onApplyProfile: (PerformanceProfile) -> Unit,
     onOpenCreateProfile: () -> Unit,
@@ -787,21 +790,30 @@ private fun ProfileListSection(
                 .padding(bottom = 4.dp),
             contentAlignment = Alignment.CenterEnd,
         ) {
-            if (!isSelectedAlreadyApplied) {
+            if (!isSelectedAlreadyApplied || isApplyingProfile) {
                 Button(
                     onClick = onApplySelectedProfile,
-                    enabled = canApplySelectedProfile,
+                    enabled = canApplySelectedProfile && !isApplyingProfile,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 ) {
-                    val selectedLabel = if (state.selectedDisplayProfileId == ProfileStateResolver.STOCK_PROFILE_ID) {
-                        strings.powerTierStock
+                    if (isApplyingProfile) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        Spacer(Modifier.size(8.dp))
+                        Text(text = strings.applyingProfile)
                     } else {
-                        state.selectedDisplayProfileName
+                        val selectedLabel = if (state.selectedDisplayProfileId == ProfileStateResolver.STOCK_PROFILE_ID) {
+                            strings.powerTierStock
+                        } else {
+                            state.selectedDisplayProfileName
+                        }
+                        Text(
+                            text = selectedLabel?.let { String.format(strings.applyProfileLabel, it) }
+                                ?: strings.selectProfilePrompt,
+                        )
                     }
-                    Text(
-                        text = selectedLabel?.let { String.format(strings.applyProfileLabel, it) }
-                            ?: strings.selectProfilePrompt,
-                    )
                 }
             }
         }

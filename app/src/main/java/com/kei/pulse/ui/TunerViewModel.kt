@@ -62,6 +62,8 @@ class TunerViewModel(
 
     private val edits = MutableStateFlow<Map<Int, Int>>(emptyMap())
     private val latestRepoValues = MutableStateFlow<Map<Int, Int>>(emptyMap())
+    private val _isApplyingProfile = MutableStateFlow(false)
+    val isApplyingProfile: StateFlow<Boolean> = _isApplyingProfile
     private val transientMessage = MutableStateFlow<String?>(null)
     private val transientError = MutableStateFlow<String?>(null)
 
@@ -1052,42 +1054,47 @@ class TunerViewModel(
         transientError.value = null
 
         viewModelScope.launch {
-            val appliedProfile = ProfileStateResolver.preferredProfileForCurrentValues(state)
-            val appliedValues = state.currentValues.filterKeys { id -> state.policies.any { it.id == id } }
-            val editsSnapshot = edits.value
-            val applyResult = repository.applyValues(
-                policies = state.policies,
-                selectedValues = state.currentValues,
-                isReset = appliedProfile?.id == ProfileStateResolver.STOCK_PROFILE_ID,
-                appliedDisplayProfileId = appliedProfile?.id ?: ProfileStateResolver.MANUAL_PROFILE_ID,
-                // A pure manual apply (no profile matched) is the user's Custom setup — snapshot it.
-                persistAsCustom = appliedProfile == null,
-            )
-            applyResult.onSuccess { outcome ->
-                val strings = currentStrings()
-                transientMessage.value = if (outcome.verificationPassed) {
-                    buildAppliedMessage(appliedProfile, outcome.commandOutput, strings)
-                } else {
-                    buildVerificationFailureMessage(state, outcome.actualValues, outcome.commandOutput, strings)
-                }
-                transientError.value = null
-                withTimeoutOrNull(300) {
-                    latestRepoValues.first { repoValues ->
-                        appliedValues.all { (policyId, value) -> repoValues[policyId] == value }
+            _isApplyingProfile.value = true
+            try {
+                val appliedProfile = ProfileStateResolver.preferredProfileForCurrentValues(state)
+                val appliedValues = state.currentValues.filterKeys { id -> state.policies.any { it.id == id } }
+                val editsSnapshot = edits.value
+                val applyResult = repository.applyValues(
+                    policies = state.policies,
+                    selectedValues = state.currentValues,
+                    isReset = appliedProfile?.id == ProfileStateResolver.STOCK_PROFILE_ID,
+                    appliedDisplayProfileId = appliedProfile?.id ?: ProfileStateResolver.MANUAL_PROFILE_ID,
+                    // A pure manual apply (no profile matched) is the user's Custom setup — snapshot it.
+                    persistAsCustom = appliedProfile == null,
+                )
+                applyResult.onSuccess { outcome ->
+                    val strings = currentStrings()
+                    transientMessage.value = if (outcome.verificationPassed) {
+                        buildAppliedMessage(appliedProfile, outcome.commandOutput, strings)
+                    } else {
+                        buildVerificationFailureMessage(state, outcome.actualValues, outcome.commandOutput, strings)
                     }
+                    transientError.value = null
+                    withTimeoutOrNull(300) {
+                        latestRepoValues.first { repoValues ->
+                            appliedValues.all { (policyId, value) -> repoValues[policyId] == value }
+                        }
+                    }
+                    if (edits.value == editsSnapshot) {
+                        edits.value = emptyMap()
+                    }
+                }.onFailure { throwable ->
+                    val strings = currentStrings()
+                    transientError.value = localizeErrorMessage(throwable.message, strings)
+                        ?: String.format(strings.toastFailedToApply, strings.tierCustomLabel)
                 }
-                if (edits.value == editsSnapshot) {
-                    edits.value = emptyMap()
+                if (applyResult.isSuccess) {
+                    reapplyGpuLock()
+                    repository.selectProfile(appliedProfile?.id?.takeUnless { it == ProfileStateResolver.STOCK_PROFILE_ID })
+                    onApplied(appliedProfile?.name ?: currentStrings().tierCustomLabel)
                 }
-            }.onFailure { throwable ->
-                val strings = currentStrings()
-                transientError.value = localizeErrorMessage(throwable.message, strings)
-                    ?: String.format(strings.toastFailedToApply, strings.tierCustomLabel)
-            }
-            if (applyResult.isSuccess) {
-                reapplyGpuLock()
-                repository.selectProfile(appliedProfile?.id?.takeUnless { it == ProfileStateResolver.STOCK_PROFILE_ID })
-                onApplied(appliedProfile?.name ?: currentStrings().tierCustomLabel)
+            } finally {
+                _isApplyingProfile.value = false
             }
         }
     }

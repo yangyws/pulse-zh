@@ -397,4 +397,5 @@
     <string name="governor_balanced">平衡</string>
     <string name="governor_power_save">省電</string>
     <string name="profile_in_use">使用中</string>
+    <string name="applying_profile">套用中…</string>
 </resources>

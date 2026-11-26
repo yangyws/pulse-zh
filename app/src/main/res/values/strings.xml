@@ -398,4 +398,5 @@
     <string name="governor_power_save">Power Save</string>
     <string name="profile_in_use">Active</string>
     <string name="power_tier_stock">Stock</string>
+    <string name="applying_profile">Applying…</string>
 </resources>
