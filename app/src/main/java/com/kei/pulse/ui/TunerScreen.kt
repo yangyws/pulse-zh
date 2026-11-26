@@ -717,28 +717,33 @@ private fun ProfileListSection(
             }
         }
 
+        val isSelectedAlreadyApplied = state.selectedDisplayProfileId != null &&
+            state.selectedDisplayProfileId == state.activeDisplayProfileId
         val canApplySelectedProfile = state.selectedDisplayProfileId != null &&
+            !isSelectedAlreadyApplied &&
             state.policies.isNotEmpty() &&
             state.isPServerAvailable
-        Spacer(Modifier.size(4.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            Button(
-                onClick = onApplySelectedProfile,
-                enabled = canApplySelectedProfile,
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        if (!isSelectedAlreadyApplied) {
+            Spacer(Modifier.size(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
             ) {
-                val selectedLabel = if (state.selectedDisplayProfileId == ProfileStateResolver.STOCK_PROFILE_ID) {
-                    strings.powerTierStock
-                } else {
-                    state.selectedDisplayProfileName
+                Button(
+                    onClick = onApplySelectedProfile,
+                    enabled = canApplySelectedProfile,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                ) {
+                    val selectedLabel = if (state.selectedDisplayProfileId == ProfileStateResolver.STOCK_PROFILE_ID) {
+                        strings.powerTierStock
+                    } else {
+                        state.selectedDisplayProfileName
+                    }
+                    Text(
+                        text = selectedLabel?.let { String.format(strings.applyProfileLabel, it) }
+                            ?: strings.selectProfilePrompt,
+                    )
                 }
-                Text(
-                    text = selectedLabel?.let { String.format(strings.applyProfileLabel, it) }
-                        ?: strings.selectProfilePrompt,
-                )
             }
         }
     }
