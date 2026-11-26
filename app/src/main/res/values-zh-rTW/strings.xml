@@ -80,7 +80,7 @@
     <string name="per_app_configure_button">設定各應用程式</string>
     <string name="per_app_switch_notices">顯示切換通知</string>
     <string name="per_app_switch_notices_desc">當應用程式切換導致設定檔變更時顯示提示通知。</string>
-    <string name="apps_configured_singular">已設定 %d 個應用程式</string>
+    <string name="apps_configured_singular">已設定 1 個應用程式</string>
     <string name="apps_configured_plural">已設定 %d 個應用程式</string>
     <string name="overlay_section_title">遊戲內浮動資訊窗 (OSD)</string>
     <string name="in_game_overlay_switch">啟用遊戲內浮動視窗</string>
