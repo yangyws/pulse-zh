@@ -1020,7 +1020,7 @@ private fun ProfileEditorDialog(
     onDelete: () -> Unit,
 ) {
     val strings = LocalPulseStrings.current
-    val initialValues = remember(profile?.id, creatingNewProfile, manualMode, baseState.actualValues) {
+    val initialValues = remember(profile?.id, creatingNewProfile, manualMode) {
         baseState.policies.associate { policy ->
             val initialValue = when {
                 creatingNewProfile || manualMode -> baseState.actualValues[policy.id]
