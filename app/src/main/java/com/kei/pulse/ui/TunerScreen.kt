@@ -1,6 +1,9 @@
 package com.kei.pulse.ui
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -147,11 +150,27 @@ fun MainTunerScreen(
     val strings = LocalPulseStrings.current
     var dialogProfileId by remember { mutableStateOf<String?>(null) }
 
-    ScreenNotifications(
-        state = state,
-        onStatusMessageShown = onStatusMessageShown,
-        onErrorMessageShown = onErrorMessageShown,
-    )
+    var bannerMessage by remember { mutableStateOf<Pair<String, Boolean>?>(null) }
+
+    LaunchedEffect(state.statusMessage) {
+        state.statusMessage?.let { msg ->
+            bannerMessage = msg to false
+            onStatusMessageShown()
+        }
+    }
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let { msg ->
+            bannerMessage = msg to true
+            onErrorMessageShown()
+        }
+    }
+    LaunchedEffect(bannerMessage) {
+        val current = bannerMessage ?: return@LaunchedEffect
+        delay(if (current.second) 3_500 else 2_200)
+        if (bannerMessage == current) {
+            bannerMessage = null
+        }
+    }
 
     LaunchedEffect(Unit) {
         onRefreshSystemControls()
@@ -162,6 +181,7 @@ fun MainTunerScreen(
         }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     ScreenContainer(compactMode = false) {
         Column(
             modifier = Modifier
@@ -310,6 +330,39 @@ fun MainTunerScreen(
                         onEditProfile = { dialogProfileId = it },
                         onMoveProfile = onMoveProfile,
                         onApplySelectedProfile = { onApplyCurrent(state) },
+                    )
+                }
+            }
+        }
+    }
+        AnimatedVisibility(
+            visible = bannerMessage != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+        ) {
+            bannerMessage?.let { (message, isError) ->
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = if (isError) {
+                        MaterialTheme.colorScheme.errorContainer
+                    } else {
+                        MaterialTheme.colorScheme.inverseSurface
+                    },
+                    contentColor = if (isError) {
+                        MaterialTheme.colorScheme.onErrorContainer
+                    } else {
+                        MaterialTheme.colorScheme.inverseOnSurface
+                    },
+                    shadowElevation = 6.dp,
+                ) {
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
