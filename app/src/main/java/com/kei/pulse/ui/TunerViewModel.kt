@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kei.pulse.i18n.AppLanguage
 import com.kei.pulse.i18n.PulseStrings
+import com.kei.pulse.i18n.localizedName
 import com.kei.pulse.i18n.resolvePulseStrings
 import com.kei.pulse.data.DisplayController
 import com.kei.pulse.data.GovernorController
@@ -1306,7 +1307,7 @@ class TunerViewModel(
         strings: PulseStrings = currentStrings(),
     ): String {
         val base = if (appliedProfile != null) {
-            String.format(strings.toastAppliedProfile, appliedProfile.name)
+            String.format(strings.toastAppliedProfile, appliedProfile.localizedName(strings))
         } else {
             strings.toastAppliedManual
         }
