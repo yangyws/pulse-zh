@@ -49,6 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 
@@ -59,11 +60,12 @@ class TunerViewModel(
 ) : ViewModel() {
 
     private val edits = MutableStateFlow<Map<Int, Int>>(emptyMap())
+    private val latestRepoValues = MutableStateFlow<Map<Int, Int>>(emptyMap())
     private val transientMessage = MutableStateFlow<String?>(null)
     private val transientError = MutableStateFlow<String?>(null)
 
     val state: StateFlow<TunerState> = combine(
-        repository.observeState(),
+        repository.observeState().onEach { latestRepoValues.value = it.currentValues },
         edits,
         transientMessage,
         transientError,
@@ -1068,9 +1070,9 @@ class TunerViewModel(
                     buildVerificationFailureMessage(state, outcome.actualValues, outcome.commandOutput, strings)
                 }
                 transientError.value = null
-                withTimeoutOrNull(400) {
-                    repository.observeState().first { repo ->
-                        appliedValues.all { (policyId, value) -> repo.currentValues[policyId] == value }
+                withTimeoutOrNull(800) {
+                    latestRepoValues.first { repoValues ->
+                        appliedValues.all { (policyId, value) -> repoValues[policyId] == value }
                     }
                 }
                 if (edits.value == editsSnapshot) {
